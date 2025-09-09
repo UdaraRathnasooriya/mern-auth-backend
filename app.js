@@ -1,5 +1,7 @@
 import express from "express";
 const app = express();
+import authRouter from "./routes/authRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 
 //Error Handling
 import CustomError from "./Utils/CustomError.js";
@@ -7,9 +9,16 @@ import globalErrorHandler from "././middlewares/globalErrorHandler.js";
 
 app.use(express.json());
 
+// routes
+app.use("/api/v1/auth/", authRouter);
+app.use("/api/v1/user/", userRouter);
 
-// app.use("/api/v1/auth/", authRouter);
-// app.use("/api/v1/user/", userRouter);
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to the authentication system.",
+  });
+});
 
 // Default route
 app.all(/.*/, (req, res, next) => {
