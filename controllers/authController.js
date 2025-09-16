@@ -21,7 +21,7 @@ const signUp = asyncErrorHandler(async (req, res, next) => {
     });
   }
 
-  const { name, email, password , confirmPassword } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -37,14 +37,16 @@ const signUp = asyncErrorHandler(async (req, res, next) => {
     name,
     email,
     password,
-    confirmPassword
+    confirmPassword,
   });
-
+  // Convert to plain object and remove password
+  const userSafe = user.toObject();
+  delete userSafe.password;
   // Send response
   res.status(201).json({
     status: "success",
     data: {
-      user,
+      user: userSafe,
     },
     message: "User registered successfully",
   });
@@ -97,9 +99,11 @@ const signIn = asyncErrorHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    user: userSafe,
+    data: {
+      user: userSafe,
+    },
     message: "Login successful",
   });
 });
 
-export { signUp , signIn };
+export { signUp, signIn };
