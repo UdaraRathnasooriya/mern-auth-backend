@@ -75,6 +75,11 @@ const signIn = asyncErrorHandler(async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
   // const isMatch = await user.comparePasswordInDb(password, user.password);
 
+  if(!user) {
+    const error = new CustomError("User not found with this Email", 400);
+    return next(error);
+  }
+
   if (!user || !(await user.comparePasswordInDb(password, user.password))) {
     const error = new CustomError("Incorrect email or password", 400);
     return next(error);
