@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp } from "../controllers/authController.js";
+import { signUp , signIn } from "../controllers/authController.js";
 import { body } from "express-validator";
 
 const router = express.Router();
@@ -16,6 +16,12 @@ const signUpValidation = [
     .withMessage("Password must be at least 4 characters"),
 ];
 
+const signInValidation = [
+  body("email").isEmail().normalizeEmail().withMessage("Invalid email address"),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
 router.route("/signup").post(signUpValidation, signUp);
+router.post("/signin", signInValidation, signIn);
 
 export default router;

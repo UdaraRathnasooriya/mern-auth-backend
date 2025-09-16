@@ -52,6 +52,15 @@ userSchema.pre("save", async function (next) {
   next(); // call the next middleware
 });
 
+//Those are instance methods, they are available on the document instance
+userSchema.methods.comparePasswordInDb = async function (
+  candidatePassword,
+  userPassword
+) {
+  // Compare the candidate password with the hashed password
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
