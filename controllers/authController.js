@@ -1,15 +1,10 @@
 import User from "../models/UserModel.js";
 import asyncErrorHandler from "../Utils/asyncErrorHandler.js";
 import { validationResult } from "express-validator";
-import jwt from "jsonwebtoken";
 import CustomError from "../Utils/CustomError.js";
+import { createSendToken } from "../Utils/token.js";
 
-const signToken = (id) => {
-  return jwt.sign({ id: id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXP,
-  });
-};
-
+// ================== SIGN UP ==================
 const signUp = asyncErrorHandler(async (req, res, next) => {
   // Validate input using express-validator
   const errors = validationResult(req);
@@ -52,6 +47,7 @@ const signUp = asyncErrorHandler(async (req, res, next) => {
   });
 });
 
+// ================== SIGN IN ==================
 const signIn = asyncErrorHandler(async (req, res, next) => {
   //  Validate input using express-validator
   const errors = validationResult(req);
@@ -75,7 +71,7 @@ const signIn = asyncErrorHandler(async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
   // const isMatch = await user.comparePasswordInDb(password, user.password);
 
-  if(!user) {
+  if (!user) {
     const error = new CustomError("User not found with this Email", 400);
     return next(error);
   }
@@ -85,30 +81,33 @@ const signIn = asyncErrorHandler(async (req, res, next) => {
     return next(error);
   }
 
-  const token = signToken(user._id);
-
-  // Convert "30d" to milliseconds
-  const days = parseInt(process.env.JWT_EXP); // "30d" → 30
-  const cookieExpireMs = days * 24 * 60 * 60 * 1000; // 30 days in ms
-
-  const options = {
-    expires: new Date(Date.now() + cookieExpireMs), // Cookie expiry.Must be Date object
-    secure: process.env.NODE_ENV === "production", // HTTPS only in production
-    httpOnly: true, // JS can't access cookie
-  };
-
-  res.cookie("authToken", token, options);
-  // Convert to plain object and remove password
-  const userSafe = user.toObject();
-  delete userSafe.password;
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      user: userSafe,
-    },
-    message: "Login successful",
-  });
+  createSendToken(user, 200, res, "Login successful");
 });
 
-export { signUp, signIn };
+// ================== GOOGLE SIGN IN ==================
+const googleSignIn = asyncErrorHandler(async (req, res, next) => {
+  const { name, email, avatar } = req.body;
+
+  if (!email) {
+    const error = new CustomError("Email is required for Google login", 400);
+    return next(error);
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // If user doesn't exist, create one with a generated password
+    const generatedPassword = Math.random().toString(36).slice(-8);
+    user = await User.create({
+      name,
+      email,
+      password: generatedPassword,
+      confirmPassword: generatedPassword,
+      avatar,
+    });
+  }
+
+  createSendToken(user, 200, res, "Login successful");
+});
+
+export { signUp, signIn, googleSignIn };

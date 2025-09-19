@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       },
       select: false, // not persisted
     },
+    avatar: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dzcmadjl1/image/upload/v1696117083/avatar/avatar_c9c0wl.png",
+    },
   },
   { timestamps: true }
 );

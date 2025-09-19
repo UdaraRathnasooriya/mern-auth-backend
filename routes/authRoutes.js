@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp, signIn } from "../controllers/authController.js";
+import { signUp, signIn, googleSignIn } from "../controllers/authController.js";
 import { body } from "express-validator";
 
 const router = express.Router();
@@ -27,7 +27,11 @@ const signInValidation = [
   body("password").notEmpty().withMessage("Password is required"),
 ];
 
+// ✅ Auth routes
 router.route("/signup").post(signUpValidation, signUp);
 router.route("/signin").post(signInValidation, signIn);
+
+// ✅ Google sign-in route (no validation needed for now)
+router.route("/google").post(googleSignIn);
 
 export default router;
