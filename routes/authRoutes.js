@@ -15,8 +15,15 @@ const signUpValidation = [
     .normalizeEmail({ gmail_remove_dots: false })
     .withMessage("Invalid email address"),
   body("password")
+    .notEmpty()
+    .withMessage("Password is required")
     .isLength({ min: 4 })
     .withMessage("Password must be at least 4 characters"),
+  body("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm Password is required")
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"),
 ];
 
 const signInValidation = [

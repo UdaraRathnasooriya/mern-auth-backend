@@ -18,6 +18,14 @@ const signUp = asyncErrorHandler(async (req, res, next) => {
 
   const { name, email, password, confirmPassword } = req.body;
 
+  //  Enforce password only for manual signup
+  if (!password || !confirmPassword) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Password and confirmPassword are required for manual signup",
+    });
+  }
+
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -111,7 +119,6 @@ const googleSignIn = asyncErrorHandler(async (req, res, next) => {
       email,
       avatar,
       password: null,
-      confirmPassword: null,
       authProvider: "google",
     });
   } else {
