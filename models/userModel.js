@@ -21,16 +21,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // required: [true, "Password is required"],
       minlength: [4, "Password must be at least 4 characters"], // Updated to match route validation
       select: false,
     },
     confirmPassword: {
       type: String,
-      required: [true, "Please confirm your password"],
+      // required: [true, "Please confirm your password"],
       validate: {
         validator: function (val) {
-          return val === this.password;
+          // ✅ Only validate when the user signs up locally (password exists)
+          return this.password ? val === this.password : true;
         },
         message: "Passwords are not the same!",
       },
@@ -41,13 +42,20 @@ const userSchema = new mongoose.Schema(
       default:
         "https://res.cloudinary.com/dzcmadjl1/image/upload/v1696117083/avatar/avatar_c9c0wl.png",
     },
+    // This is track how user register to the system
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
   },
   { timestamps: true }
 );
 
 // pre-save document middleware to hash the password **** this - current document
+// Hash password *only if* it exists (skip for Google users)
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     // if password is not modified, skip the next middleware
     return next();
   }
