@@ -76,6 +76,16 @@ const signIn = asyncErrorHandler(async (req, res, next) => {
     return next(error);
   }
 
+  // 🚫 Block password login for Google-only users
+  if (user.authProvider === "google" && !user.password) {
+    return next(
+      new CustomError(
+        "This account was created using Google. Please log in using Google or set a password first.",
+        400
+      )
+    );
+  }
+
   if (!user || !(await user.comparePasswordInDb(password, user.password))) {
     const error = new CustomError("Incorrect email or password", 400);
     return next(error);
@@ -96,18 +106,57 @@ const googleSignIn = asyncErrorHandler(async (req, res, next) => {
   let user = await User.findOne({ email });
 
   if (!user) {
-    // If user doesn't exist, create one with a generated password
-    const generatedPassword = Math.random().toString(36).slice(-8);
     user = await User.create({
       name,
       email,
-      password: generatedPassword,
-      confirmPassword: generatedPassword,
       avatar,
+      password: null,
+      confirmPassword: null,
+      authProvider: "google",
     });
+  } else {
+    // If user signed up locally earlier, mark them as multi-provider
+    if (user.authProvider === "local") {
+      user.authProvider = "local"; // or "google" or ["local","google"] if array-based
+      await user.save();
+    }
   }
 
   createSendToken(user, 200, res, "Login successful");
+});
+
+// ================== SET PASSWORD (For Google Users) ==================
+//✅ New Feature: Set Password for Google Users - Not Complete Implemented
+const setPassword = asyncErrorHandler(async (req, res, next) => {
+  const { email, password, confirmPassword } = req.body;
+
+  if (!email || !password || !confirmPassword) {
+    return next(
+      new CustomError("Email, password, and confirmPassword are required", 400)
+    );
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    return next(new CustomError("User not found", 400));
+  }
+
+  if (user.authProvider !== "google") {
+    return next(
+      new CustomError(
+        "This feature is only for Google-authenticated users",
+        400
+      )
+    );
+  }
+
+  user.password = password;
+  user.confirmPassword = confirmPassword;
+  user.authProvider = "local"; // ✅ Now they can log in normally
+  await user.save();
+
+  createSendToken(user, 200, res, "Password set successfully");
 });
 
 export { signUp, signIn, googleSignIn };
