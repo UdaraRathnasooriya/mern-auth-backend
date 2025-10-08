@@ -19,6 +19,7 @@ export const createSendToken = (user, statusCode, res, message) => {
     expires: new Date(Date.now() + cookieExpireMs),
     secure: process.env.NODE_ENV === "production", // Only HTTPS in production
     httpOnly: true, // Cookie not accessible by JS
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   };
 
   res.cookie("authToken", token, options);
