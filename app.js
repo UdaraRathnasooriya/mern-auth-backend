@@ -3,12 +3,14 @@ const app = express();
 import authRouter from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 //Error Handling
 import CustomError from "./Utils/CustomError.js";
 import globalErrorHandler from "././middlewares/globalErrorHandler.js";
 
 app.use(express.json());
+app.use(cookieParser());
 
 // CORS (for dev)
 app.use(

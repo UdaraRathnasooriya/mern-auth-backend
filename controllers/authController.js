@@ -1,4 +1,4 @@
-import User from "../models/UserModel.js";
+import User from "../models/userModel.js";
 import asyncErrorHandler from "../Utils/asyncErrorHandler.js";
 import { validationResult } from "express-validator";
 import CustomError from "../Utils/CustomError.js";
