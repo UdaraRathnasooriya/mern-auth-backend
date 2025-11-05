@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp, signIn, googleSignIn } from "../controllers/authController.js";
+import { signUp, signIn, googleSignIn , logout } from "../controllers/authController.js";
 import { body } from "express-validator";
 
 const router = express.Router();
@@ -40,5 +40,8 @@ router.route("/signin").post(signInValidation, signIn);
 
 // ✅ Google sign-in route (no validation needed for now)
 router.route("/google").post(googleSignIn);
+
+// logout function
+router.route("/signout").post(logout)
 
 export default router;
